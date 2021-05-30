@@ -1,0 +1,25 @@
+* {
+   margin: 0; 
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px; 
+    
+}
+header .search {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+header .search form {
+    display: flex;
+}
+
+header .search form input {
+    
+}
