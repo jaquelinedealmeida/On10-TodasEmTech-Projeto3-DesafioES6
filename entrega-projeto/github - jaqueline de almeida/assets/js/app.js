@@ -1,6 +1,8 @@
 const form = document.querySelector('form');
 const input = document.querySelector('#search');
 const profile = document.querySelector('.profile');
+const listrepo = document.querySelector('.listrepo');
+const content = document.querySelector('.content');
 
 form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -8,30 +10,97 @@ form.addEventListener('submit', (event) => {
     const usuario = input.value.trim();
  
     if(usuario){
-      return getUsuario(usuario)
+
+        const statusUsuario = getUsuario(usuario)
+
+      return  statusUsuario
     } 
      return alert('informe o usuário')
  })
 
+
+
 const getUsuario = async (usuario) => {
 
     try {
-     const requisicao = await fetch(`https://api.github.com/users/${usuario}`)
-     if(requisicao.status === 404){
-         throw new Error();
-     }
-     const usuarioInformacoes = await requisicao.json();
-     profile.innerHTML = criarCardUsuario(usuarioInformacoes)
-    } catch {
-     profile.innerHTML = criarCardFoundNot()
+     const requisicaoUsuario = await fetch(`https://api.github.com/users/${usuario}`)
+     const requisicaoRepo = await fetch(`https://api.github.com/users/${usuario}/repos`)
 
+     if(requisicaoUsuario.status === 404){
+        throw new Error();
+     }
+     const usuarioInformacoes = await requisicaoUsuario.json();
+     const usuarioRepo = await requisicaoRepo.json();
+
+     if(requisicaoRepo.status === 404){
+        content.innerHTML = `
+        <div class="profile">${criarCardUsuario(usuarioInformacoes)}</div>
+        <div class="listrepo">${usuario} não tem repositórios públicos ainda.</div>`
+    
+    } else {
+        content.innerHTML = `
+        <div class="profile">${criarCardUsuario(usuarioInformacoes)}</div>
+        <div class="listrepo">${criarCardRepo(usuarioRepo)}</div>`
+    }
+
+    } catch {
+            content.innerHTML = criarCardFoundNot();
     }
 }
 
-const criarCardUsuario = (usuario) => {
-    const { login, name, bio, followers, public_repos, avatar_url} = usuario;
+
+const criarCardRepo = (requisicaoRepo) => {
+
+ 
+    let render = '';
+    render += '<div class="cards">';
+
+        for (let i = 0; i < requisicaoRepo.length; i = i + 2) {
+        render += `
+    <div class="colunm_repo">        
+        <div class="card__repo">
+            <div class="tituloRepo padding-6"><a href="https://github.com/${requisicaoRepo[i].full_name}">${requisicaoRepo[i].name}</a></div>
+                <p class="descricaoRepo padding-6">${requisicaoRepo[i].description ? requisicaoRepo[i].description : ' '}</p> 
+            
+                <div class="descricao padding-6">
+                    <div class="bolinha ">
+                        <img src="./assets/img/circule.svg"> 
+                        ${requisicaoRepo[i].language ? requisicaoRepo[i].language : ' '}</div>
+                    <div class="estrelinha">
+                        <img src="./assets/img/star.svg">
+                        ${requisicaoRepo[i].forks}
+                    </div>
+                </div>
+        </div>
+        
+        <div class="card__repo">
+            <div class="tituloRepo padding-6"><a href="https://github.com/${requisicaoRepo[i+1].full_name}">${requisicaoRepo[i+1].name}</a></div>
+                <p class="descricaoRepo padding-6">${requisicaoRepo[i+1].description ? requisicaoRepo[i+1].description : ' '}</p> 
+            
+                <div class="descricao padding-6">
+                    <div class="bolinha ">
+                        <img src="./assets/img/circule.svg">
+                        ${requisicaoRepo[i+1].language ? requisicaoRepo[i+1].language : ' '}
+                    </div>
+                
+                    <div class="estrelinha">
+                        <img src="./assets/img/star.svg">
+                        ${requisicaoRepo[i].forks}
+                </div>
+            </div>
+        </div>
+    </div>
+        `;
+        }
+
+    render += '</div>';
+    return render;
+}
+
+
+const criarCardUsuario = (usuarioInformacoes) => {
+    const { login, name, bio, followers, public_repos, avatar_url} = usuarioInformacoes;
      return `
-     <div class="content">
      <img class="avatar padding-10" src="${avatar_url}">
      <h1 class="padding-6">${name}</h1>
      <h2 class="padding-6">${login}</h2>
@@ -46,7 +115,6 @@ const criarCardUsuario = (usuario) => {
              <img class="ico" src="./assets/img/public_repos.svg">
              <span>${public_repos}</span>
          </div>
-     </div>
      </div>
     `
  }
